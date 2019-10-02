@@ -72,6 +72,15 @@ trait PostHttpTransport {
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[HttpResponse]
 
+  def doPostWithTimeout[A](
+     url: String,
+     body: A,
+     headers: Seq[(String, String)] = Seq.empty,
+     timeout: Int)(
+        implicit wts: Writes[A],
+        hc: HeaderCarrier,
+        ec: ExecutionContext): Future[HttpResponse]
+
   def doPostString(
     url: String,
     body: String,

@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.play.http.ws
 
+import java.util.concurrent.TimeUnit
+
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.Results
 import uk.gov.hmrc.http.{CorePost, HeaderCarrier, HttpResponse, PostHttpTransport}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future, duration}
 
 
 trait WSPost extends CorePost with PostHttpTransport with WSRequest with WSExecute {
@@ -33,6 +36,17 @@ trait WSPost extends CorePost with PostHttpTransport with WSRequest with WSExecu
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[HttpResponse] =
     execute(buildRequest(url, headers).withBody(Json.toJson(body)), "POST")
+      .map(new WSHttpResponse(_))
+
+  override def doPostWithTimeout[A](
+    url: String,
+    body: A,
+    headers: Seq[(String, String)],
+    timeoutMillis: Int)(
+      implicit rds: Writes[A],
+      hc: HeaderCarrier,
+      ec: ExecutionContext): Future[HttpResponse] =
+    execute(buildRequest(url, headers).withBody(Json.toJson(body)).withRequestTimeout(Duration(timeoutMillis,TimeUnit.MILLISECONDS)), "POST")
       .map(new WSHttpResponse(_))
 
   override def doFormPost(
